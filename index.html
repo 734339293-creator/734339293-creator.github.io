@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>北京市应急避难场所地图</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{height:100%}
+    #map{width:100%;height:100%}
+    .custom-popup{min-width:220px;padding:8px}
+    .popup-title{font-size:16px;font-weight:bold;color:#d32f2f;margin-bottom:8px;border-bottom:1px solid #eee;padding-bottom:5px}
+    .popup-info{font-size:13px;color:#333;line-height:1.6;margin:4px 0}
+    .nav-btn{display:block;width:100%;margin-top:10px;padding:8px;background:#2196f3;color:#fff;border:none;border-radius:4px;text-align:center;text-decoration:none}
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<script>
+const shelters = [
+{"lat":39.92209,"lng":116.400349,"name":"皇城根遗址公园","district":"东城区","address":"西邻南北河沿大街，东依晨光街，南起东城区大甜水井胡同西口，北至地安门东大街","area":"90000平方米"},
+{"lat":39.951779,"lng":116.412129,"name":"地坛园外园","district":"东城区","address":"和平里西街东南侧，北护城河北侧","area":"57000平方米"},
+{"lat":39.899995,"lng":116.421703,"name":"明城墙遗址公园","district":"东城区","address":"东起东二环东南角楼，西至崇文门，北临北京火车站铁路线，南至崇文门东大街","area":"122000平方米"},
+{"lat":39.870959,"lng":116.412016,"name":"玉蜓公园","district":"东城区","address":"景泰桥以东，玉蜓桥以西，南护城河以南，铁路以北","area":"34000平方米"},
+{"lat":39.878928,"lng":116.394251,"name":"南大地公园","district":"东城区","address":"北起天坛公园西门，南至永定门立交桥","area":"37000平方米"},
+{"lat":39.879287,"lng":116.393645,"name":"南中轴路绿地北大地","district":"东城区","address":"永定门公园东城园区北侧，北侧、东侧为永定门内大街，南至木料巷","area":"29000平方米"},
+{"lat":39.94222,"lng":116.421553,"name":"南馆公园","district":"东城区","address":"北起小街桥，南至西痒馆胡同","area":"25200平方米"},
+{"lat":39.879094,"lng":116.431311,"name":"龙潭公园","district":"东城区","address":"北起龙潭路，西至左安门大街，东至龙潭东路，南至南二环","area":"423000平方米"},
+{"lat":39.879118,"lng":116.423951,"name":"龙潭西湖公园","district":"东城区","address":"东至北京游乐园，南至北京游乐园，西至龙潭西里，北至国家体育总局训练局","area":"105000平方米"},
+{"lat":39.946121,"lng":116.434312,"name":"香河园绿地","district":"东城区","address":"西至香河园路、东至东直门外斜街","area":"37000平方米"},
+{"lat":39.898179,"lng":116.390924,"name":"前门箭楼绿地","district":"东城区","address":"前门箭楼东西两侧绿地","area":"24560平方米"},
+{"lat":39.871414,"lng":116.40157,"name":"二十四节气公园","district":"东城区","address":"永内东街南侧，天坛南门起止永定门桥东","area":"11000平方米"},
+{"lat":39.8776,"lng":116.387434,"name":"先农坛神仓外绿地","district":"西城区","address":"西城区永定门先农坛内（东经路往南71号）","area":"9895平方米"},
+{"lat":39.8973,"lng":116.351642,"name":"翠芳园绿地","district":"西城区","address":"西城区宣武门西大街24号楼北侧","area":"10062平方米"},
+{"lat":39.96897,"lng":116.375694,"name":"玫瑰公园","district":"西城区","address":"西城区马甸桥东北角","area":"36178平方米"},
+{"lat":39.870246,"lng":116.343583,"name":"金中都公园","district":"西城区","address":"西城区广安门南街64号","area":"47271平方米"},
+{"lat":39.87847,"lng":116.361972,"name":"万寿公园","district":"西城区","address":"西城区白纸坊东街甲29号","area":"47000平方米"},
+{"lat":39.878517,"lng":116.39155,"name":"西便门绿地","district":"西城区","address":"西城区复兴门外南大街","area":"34552平方米"},
+{"lat":39.905528,"lng":116.348932,"name":"南中轴绿地","district":"西城区","address":"西城区永定门内大街","area":"110678平方米"},
+{"lat":39.890902,"lng":116.358185,"name":"长椿苑公园","district":"西城区","address":"西城区老墙根107号","area":"14000平方米"},
+{"lat":39.894047,"lng":116.3526,"name":"宣武艺园","district":"西城区","address":"西城区槐柏树街12号","area":"72500平方米"},
+{"lat":39.901324,"lng":116.339188,"name":"白云公园","district":"西城区","address":"西城区白云路东侧","area":"60000平方米"},
+{"lat":39.974555,"lng":116.397435,"name":"元大都城垣遗址公园","district":"朝阳区","address":"朝阳区东土城路南侧","area":"672800平方米"},
+{"lat":39.942707,"lng":116.477543,"name":"朝阳公园","district":"朝阳区","address":"朝阳区朝阳公园路1号","area":"2746400平方米"},
+{"lat":39.974867,"lng":116.447857,"name":"太阳宫公园","district":"朝阳区","address":"北四环路望京西桥东南角","area":"372000平方米"},
+{"lat":40.012366,"lng":116.373754,"name":"奥林匹克森林公园","district":"朝阳区","address":"朝阳区北辰东路15号","area":"3648400平方米"},
+{"lat":39.968772,"lng":116.400461,"name":"安贞涌溪公园","district":"朝阳区","address":"朝阳区北三环路安贞桥西北角","area":"10800平方米"},
+{"lat":39.966886,"lng":116.473406,"name":"将台坝河绿化带","district":"朝阳区","address":"朝阳区将台地区坝河绿化带","area":"283200平方米"},
+{"lat":39.91274,"lng":116.526964,"name":"兴隆公园","district":"朝阳区","address":"朝阳区高碑店兴隆街","area":"428900平方米"},
+{"lat":39.928233,"lng":116.482318,"name":"红领巾公园","district":"朝阳区","address":"朝阳区东四环路红领巾桥东北角","area":"266500平方米"},
+{"lat":40.002561,"lng":116.448974,"name":"北小河公园","district":"朝阳区","address":"朝阳区师家坟156号","area":"223600平方米"},
+{"lat":39.932835,"lng":116.546661,"name":"京城梨园","district":"朝阳区","address":"朝阳区平房乡姚家园路与东五环路交汇处东南角","area":"669500平方米"},
+{"lat":39.985654,"lng":116.442263,"name":"望和公园","district":"朝阳区","address":"朝阳区北四环东路望和桥东北角","area":"353400平方米"},
+{"lat":39.85792,"lng":116.501012,"name":"翠城公园","district":"朝阳区","address":"朝阳区垡头路与厚金路交汇处东南角","area":"35800平方米"},
+{"lat":39.821998,"lng":116.472132,"name":"鸿博郊野公园","district":"朝阳区","address":"朝阳区博大路与红坊路交叉路口西南角","area":"807200平方米"},
+{"lat":39.891192,"lng":116.465842,"name":"西大望路社区公园","district":"朝阳区","address":"朝阳区广渠路与营盘沟路交叉口西南角","area":"27500平方米"},
+{"lat":40.050517,"lng":116.403915,"name":"立水桥公园","district":"朝阳区","address":"朝阳区立水桥安立路西侧，立水桥地铁站南侧","area":"198700平方米"},
+{"lat":39.932746,"lng":116.576193,"name":"常营公园","district":"朝阳区","address":"朝阳区常营幺家店路与民族家园中路交叉口北侧","area":"664100平方米"},
+{"lat":39.975597,"lng":116.509895,"name":"将府公园（三期）","district":"朝阳区","address":"朝阳区将台东路与东五环路交叉口西南侧","area":"423300平方米"},
+{"lat":39.876983,"lng":116.525924,"name":"古塔公园北园西区","district":"朝阳区","address":"朝阳区王四营古塔北路古塔公园北园西区","area":"564900平方米"},
+{"lat":39.92396,"lng":116.321488,"name":"北京市实验学校(海淀)","district":"海淀区","address":"甘家口街道阜成路甲3号","area":"50000平方米"},
+{"lat":39.970876,"lng":116.373594,"name":"马甸公园","district":"海淀区","address":"马甸桥-健德桥","area":"86000平方米"},
+{"lat":39.971497,"lng":116.370128,"name":"海淀民族小学","district":"海淀区","address":"马甸公园西侧300米","area":"28700平方米"},
+{"lat":39.961769,"lng":116.330172,"name":"交大附中","district":"海淀区","address":"海淀区皂君庙12号","area":"43000平方米"},
+{"lat":40.038485,"lng":116.330794,"name":"北京市第二十中学","district":"海淀区","address":"小营西路11号，小营桥西200米路北","area":"66000平方米"},
+{"lat":40.033612,"lng":116.302987,"name":"北京市上地实验学校","district":"海淀区","address":"海淀区上地二街3号","area":"27000平方米"},
+{"lat":39.976177,"lng":116.297638,"name":"八一学校主校区操场","district":"海淀区","address":"海淀区苏州街29号","area":"150000平方米"},
+{"lat":39.962318,"lng":116.287137,"name":"长春健身园","district":"海淀区","address":"区政府第一办公区西北侧","area":"100000平方米"},
+{"lat":40.028886,"lng":116.272181,"name":"中关村第二小学（西山分校）","district":"海淀区","address":"海淀区竹园西街8号","area":"25000平方米"},
+{"lat":39.914846,"lng":116.24881,"name":"阳光星期八公园","district":"海淀区","address":"铁家坟星期八公园","area":"10000平方米"},
+{"lat":39.903316,"lng":116.316352,"name":"北京市玉渊潭中学","district":"海淀区","address":"海淀区羊坊店路皇亭子","area":"6600平方米"},
+{"lat":39.896441,"lng":116.314656,"name":"北京西站下沉广场","district":"海淀区","address":"北京西站正北侧，中华世纪坛南侧","area":"15000平方米"},
+{"lat":39.991519,"lng":116.357717,"name":"北京市科技大学附属中学","district":"海淀区","address":"海淀区志新路36号","area":"35400平方米"},
+{"lat":40.038666,"lng":116.369806,"name":"东升文体公园","district":"海淀区","address":"宝盛里小区东路","area":"80000平方米"},
+{"lat":40.047299,"lng":116.177825,"name":"温泉公园","district":"海淀区","address":"温泉镇政府东侧","area":"100000平方米"},
+{"lat":39.956514,"lng":116.271901,"name":"海淀区教师进修学校","district":"海淀区","address":"海淀区四季青黑塔村142号","area":"18000平方米"},
+{"lat":39.941499,"lng":116.264566,"name":"首师大附属小学","district":"海淀区","address":"西四环外，通汇路北","area":"30000平方米"},
+{"lat":39.921877,"lng":116.213808,"name":"原九十九顶毡房阜石路店绿地","district":"海淀区","address":"晋元桥东南角","area":"100000平方米"},
+{"lat":40.098064,"lng":116.145361,"name":"海淀北部新区实验学校","district":"海淀区","address":"温阳路西，聂各庄东路北侧","area":"65000平方米"},
+{"lat":40.10454,"lng":116.109335,"name":"海淀区台头小学","district":"海淀区","address":"海淀区苏家坨镇聂各庄路13号","area":"17740平方米"},
+{"lat":39.986575,"lng":116.289882,"name":"海淀公园","district":"海淀区","address":"万泉河桥西北角","area":"328000平方米"},
+{"lat":39.99642,"lng":116.281156,"name":"挂甲屯社区人防工程","district":"海淀区","address":"挂甲屯社区","area":"4600平方米"},
+{"lat":39.978013,"lng":116.360559,"name":"金尚嘉园社区人防工程","district":"海淀区","address":"金尚嘉园社区","area":"2200平方米"},
+{"lat":39.891224,"lng":116.30539,"name":"莲花池公园","district":"丰台区","address":"太平桥街道","area":"426510平方米"},
+{"lat":39.804766,"lng":116.372811,"name":"南苑公园","district":"丰台区","address":"南苑街道","area":"93000平方米"},
+{"lat":39.807877,"lng":116.411412,"name":"怡馨花园","district":"丰台区","address":"东高地街道","area":"4800平方米"},
+{"lat":39.868015,"lng":116.411026,"name":"怡心公园","district":"丰台区","address":"东铁匠营街道","area":"2000平方米"},
+{"lat":39.834097,"lng":116.365685,"name":"林枫公园","district":"丰台区","address":"马家堡街道","area":"3000平方米"},
+{"lat":39.904887,"lng":116.244501,"name":"国际雕塑公园","district":"石景山区","address":"石景山路2号","area":"349400平方米"},
+{"lat":39.90487,"lng":116.195379,"name":"石景山区体育场","district":"石景山区","address":"石景山路32号","area":"23700平方米"},
+{"lat":39.910347,"lng":116.187028,"name":"古城公园","district":"石景山区","address":"古城南路1号","area":"22900平方米"},
+{"lat":39.910948,"lng":116.19327,"name":"石景山雕塑公园","district":"石景山区","address":"八角南路49号","area":"30600平方米"},
+{"lat":39.94018,"lng":116.194761,"name":"西山枫林一区南侧绿地","district":"石景山区","address":"香山南路168号院南侧","area":"31300平方米"},
+{"lat":39.936076,"lng":116.106549,"name":"永定河文化广场","district":"门头沟区","address":"滨河路22号","area":"340000平方米"},
+{"lat":39.923366,"lng":116.107946,"name":"葡山公园","district":"门头沟区","address":"葡山公园","area":"80000平方米"},
+{"lat":39.939091,"lng":116.089745,"name":"黑山公园","district":"门头沟区","address":"黑山大街12号","area":"38000平方米"},
+{"lat":39.937066,"lng":116.100439,"name":"滨河公园","district":"门头沟区","address":"双峪路20号","area":"48000平方米"},
+{"lat":39.892748,"lng":116.103478,"name":"石门营公园","district":"门头沟区","address":"石门营公园","area":"50000平方米"},
+{"lat":39.952345,"lng":116.092024,"name":"京门铁路遗址公园","district":"门头沟区","address":"京门铁路遗址公园","area":"8000平方米"},
+{"lat":39.970522,"lng":115.691085,"name":"斋堂文化公园","district":"门头沟区","address":"斋堂镇政府对面","area":"26000平方米"},
+{"lat":39.97931,"lng":116.082483,"name":"龙泉务村广场","district":"门头沟区","address":"龙泉务村","area":"2000平方米"},
+{"lat":39.759016,"lng":116.172337,"name":"长阳组团公园","district":"房山区","address":"长阳半岛北区西侧","area":"113390平方米"},
+{"lat":39.712643,"lng":116.085081,"name":"阎村镇文化广场","district":"房山区","address":"阎村镇前沿村112号","area":"53360平方米"},
+{"lat":39.70202,"lng":115.987596,"name":"房山体育场","district":"房山区","address":"燕山东路1号","area":"110000平方米"},
+{"lat":39.662856,"lng":116.064147,"name":"窦店人民公园","district":"房山区","address":"窦店镇大窦路70号","area":"25500平方米"},
+{"lat":39.72639,"lng":115.95001,"name":"燕山公园","district":"房山区","address":"迎风中路14号","area":"160000平方米"},
+{"lat":39.745281,"lng":116.13705,"name":"府前广场","district":"房山区","address":"政通路2号","area":"65000平方米"},
+{"lat":39.734319,"lng":116.120339,"name":"北潞园健身公园","district":"房山区","address":"西潞街道北潞园社区西侧","area":"63365平方米"},
+{"lat":39.680292,"lng":115.944237,"name":"周口店镇应急避难场所","district":"房山区","address":"周口店镇政府西侧","area":"57362平方米"},
+{"lat":39.776762,"lng":116.048851,"name":"果各庄公园","district":"房山区","address":"青龙湖镇果各庄村","area":"30015平方米"},
+{"lat":39.608044,"lng":115.772283,"name":"静琬广场","district":"房山区","address":"大石窝镇水头村云居寺东侧","area":"78706平方米"},
+{"lat":39.765194,"lng":116.172874,"name":"加州水郡御苑公园","district":"房山区","address":"长阳镇加州水郡东社区东侧","area":"87000平方米"},
+{"lat":39.65658,"lng":115.974897,"name":"石楼镇文体广场","district":"房山区","address":"石楼镇石楼村文体公园","area":"27000平方米"},
+{"lat":39.569224,"lng":115.715477,"name":"张坊镇应急避难场所","district":"房山区","address":"张坊镇张坊村张坊中学","area":"30000平方米"},
+{"lat":39.572152,"lng":115.889142,"name":"圣泉公园","district":"房山区","address":"长沟镇西长沟村圣泉公园","area":"150000平方米"},
+{"lat":39.72765,"lng":116.332792,"name":"街心公园","district":"大兴区","address":"兴丰大街西侧，商场南巷南侧","area":"20100平方米"},
+{"lat":39.750912,"lng":116.330662,"name":"枣林公园","district":"大兴区","address":"兴丰大街以西，兴华大街以东，丽园路以北，枣园路以南","area":"25200平方米"},
+{"lat":39.739589,"lng":116.307561,"name":"兴旺公园","district":"大兴区","address":"兴旺路西侧","area":"256600平方米"},
+{"lat":39.755335,"lng":116.335767,"name":"兴城广场","district":"大兴区","address":"滨河街与康庄路交叉口东南","area":"116600平方米"},
+{"lat":39.766753,"lng":116.318387,"name":"滨河公园","district":"大兴区","address":"兴业大街东侧，兴和街西侧，双高路以南，富强路以北","area":"103700平方米"},
+{"lat":39.764809,"lng":116.334744,"name":"高米店公园","district":"大兴区","address":"高米店乐园路与辅高路交叉口，金星西路以北，京开高速以西","area":"78400平方米"},
+{"lat":39.760686,"lng":116.332346,"name":"金星公园","district":"大兴区","address":"兴丰大街以东，金星西路以南，京开高速辅路以西，康顺园以北","area":"98200平方米"},
+{"lat":39.788261,"lng":116.327965,"name":"兴海公园","district":"大兴区","address":"西红门镇，宏福路以南、欣宏旭路以北，欣旺大街以西","area":"52700平方米"},
+{"lat":39.780413,"lng":116.319461,"name":"地铁公园","district":"大兴区","address":"西红门镇，宏康路以南，欣宁街以西，五环路以北","area":"119000平方米"},
+{"lat":39.790187,"lng":116.274577,"name":"狼垡公园","district":"大兴区","address":"黄村狼垡三村北侧","area":"82300平方米"},
+{"lat":39.738194,"lng":116.332183,"name":"大兴区体育局","district":"大兴区","address":"兴华大街以东，兴丰大街以西，富华巷以南，富强路以北","area":"49300平方米"},
+{"lat":39.737805,"lng":116.315789,"name":"教育行政学院附属实验学校","district":"大兴区","address":"三合路以北，兴业大街以西，兴旺大街以东","area":"31500平方米"},
+{"lat":39.681017,"lng":116.313157,"name":"大兴新源学校","district":"大兴区","address":"天水大街与永旺路交叉口","area":"36600平方米"},
+{"lat":39.718343,"lng":116.35107,"name":"首师大大兴附中","district":"大兴区","address":"黄村镇海东路4号","area":"63700平方米"},
+{"lat":39.722706,"lng":116.327545,"name":"北京建筑大学附属中学","district":"大兴区","address":"兴华大街以东，红楼南巷以西","area":"12400平方米"},
+{"lat":39.754723,"lng":116.312795,"name":"北京第八中学大兴分校","district":"大兴区","address":"兴盛街以东，兴业大街以西，康庄路以南，枣园路以北","area":"29800平方米"},
+{"lat":39.746234,"lng":116.288803,"name":"大兴七中分校","district":"大兴区","address":"黄鹅路2号","area":"66200平方米"},
+{"lat":39.754604,"lng":116.43425,"name":"大兴精华学校","district":"大兴区","address":"灜昌街以北、瀛永街以南","area":"31900平方米"},
+{"lat":39.7097,"lng":116.393624,"name":"大兴孙村学校","district":"大兴区","address":"孙海鑫路以北、民顺南路以南","area":"58300平方米"},
+{"lat":39.64771,"lng":116.633811,"name":"采育镇趣玩儿公园","district":"大兴区","address":"采源路以南，采林路以北","area":"60600平方米"},
+{"lat":39.657451,"lng":116.627545,"name":"采育第一中心小学","district":"大兴区","address":"育镇街以南，采华路以西","area":"15800平方米"},
+{"lat":39.658464,"lng":116.62747,"name":"采育第一中心幼儿园","district":"大兴区","address":"育林街以南、福源路以西","area":"5300平方米"},
+{"lat":39.65209,"lng":116.63207,"name":"采育中学","district":"大兴区","address":"采育镇福源路以东、采源路以西","area":"71200平方米"},
+{"lat":39.620855,"lng":116.646065,"name":"采育第二中心幼儿园","district":"大兴区","address":"采育镇大皮营三村","area":"7900平方米"},
+{"lat":39.615215,"lng":116.496839,"name":"北京十四中大兴安定分校","district":"大兴区","address":"安定镇兴安大街1号","area":"59600平方米"},
+{"lat":39.617442,"lng":116.494815,"name":"安定镇中心幼儿园","district":"大兴区","address":"兴安大街以北，安定卫生院以南","area":"5800平方米"},
+{"lat":39.643828,"lng":116.501733,"name":"安定镇后安定分园","district":"大兴区","address":"后安定村后前路小学东北侧","area":"11800平方米"},
+{"lat":39.619079,"lng":116.493209,"name":"大龙河滨河公园","district":"大兴区","address":"安定镇，兴安大街以北","area":"35400平方米"},
+{"lat":39.612118,"lng":116.330336,"name":"北师大附属实验中学大兴分校","district":"大兴区","address":"庞各庄镇西义堂村北","area":"77300平方米"},
+{"lat":39.632974,"lng":116.311381,"name":"庞各庄天堂河公园","district":"大兴区","address":"繁荣路以南，幸福路以北","area":"43600平方米"},
+{"lat":39.678655,"lng":116.512011,"name":"青云店第一中心小学","district":"大兴区","address":"育才路与青采路交叉口西侧","area":"11800平方米"},
+{"lat":39.707154,"lng":116.465074,"name":"垡上中学","district":"大兴区","address":"青云店镇，孙垡路以南","area":"24300平方米"},
+{"lat":39.516203,"lng":116.30972,"name":"北京一零一中大兴分校","district":"大兴区","address":"榆垡镇文苑路以南、榆祥路以北","area":"61600平方米"},
+{"lat":39.782649,"lng":116.47372,"name":"北京小学大兴亦庄分校","district":"大兴区","address":"亦庄新城千寻路与鹿圈路交界处","area":"22400平方米"},
+{"lat":39.809322,"lng":116.436055,"name":"碧海公园","district":"大兴区","address":"旧宫镇，庑殿路以西","area":"261400平方米"},
+{"lat":39.69009,"lng":116.582611,"name":"大兴区长子营学校","district":"大兴区","address":"长子营镇朱大路以西","area":"70500平方米"},
+{"lat":39.794955,"lng":116.497834,"name":"博大公园","district":"大兴区","address":"亦庄荣华中路15号北侧","area":"189000平方米"},
+{"lat":39.791829,"lng":116.480976,"name":"亦庄体育中心","district":"大兴区","address":"亦庄天宝中街1号","area":"76700平方米"},
+{"lat":39.807864,"lng":116.477431,"name":"国际企业文化园","district":"大兴区","address":"亦庄文化园路6号","area":"2000000平方米"},
+{"lat":39.897401,"lng":116.649349,"name":"潞河中学","district":"通州区","address":"新华南路135号","area":"170631平方米"},
+{"lat":39.892038,"lng":116.669428,"name":"运河中学","district":"通州区","address":"运河西大街107号","area":"43861平方米"},
+{"lat":39.88953,"lng":116.672595,"name":"玉春园","district":"通州区","address":"运河西大街与玉桥中路交叉口西南角","area":"25000平方米"},
+{"lat":39.910716,"lng":116.686902,"name":"芙蓉小学","district":"通州区","address":"通胡大街70号","area":"22667平方米"},
+{"lat":39.918711,"lng":116.686644,"name":"北京小学通州分校","district":"通州区","address":"芙蓉园313号","area":"21474平方米"},
+{"lat":39.90973,"lng":116.693354,"name":"北京二中通州分校","district":"通州区","address":"三元村水仙南街","area":"79772平方米"},
+{"lat":39.937051,"lng":116.687615,"name":"龙旺庄小学","district":"通州区","address":"潞邑西路8号","area":"56900平方米"},
+{"lat":39.872439,"lng":116.672803,"name":"梨园主题公园","district":"通州区","address":"八通轻轨临河里站南侧","area":"75371平方米"},
+{"lat":39.87014,"lng":116.669441,"name":"通州育才学校","district":"通州区","address":"云景大街","area":"79060平方米"},
+{"lat":39.907742,"lng":116.722975,"name":"人大附中通州校区","district":"通州区","address":"胡各庄村南1号","area":"64408平方米"},
+{"lat":40.120682,"lng":116.657326,"name":"顺义公园","district":"顺义区","address":"顺平快速路北侧","area":"220735平方米"}
+];
+
+// 初始化地图
+const map = L.map('map').setView([39.9042, 116.4074], 12);
+
+// 高德底图
+L.tileLayer('https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}&ak=E4805d16520de693a3fe707cdc962045', {
+    subdomains: '1234', maxZoom: 18
+}).addTo(map);
+
+// 红色避难场所图标
+const redIcon = L.divIcon({
+    html: '<div style="background:#d32f2f;width:12px;height:12px;border-radius:50%;border:2px solid #fff;"></div>',
+    iconSize: [16, 16], popupAnchor: [0, -8]
+});
+
+// 渲染所有避难场所 + APP导航
+shelters.forEach(item => {
+    const marker = L.marker([item.lat, item.lng], { icon: redIcon }).addTo(map);
+    const appNavUrl = `baidumap://map/direction?destination=latlng:${item.lat},${item.lng}|name:${encodeURIComponent(item.name)}&mode=driving&coord_type=gcj02&src=web`;
+    const popup = `
+    <div class="custom-popup">
+        <div class="popup-title">${item.name}</div>
+        <div class="popup-info">📍 ${item.district}</div>
+        <div class="popup-info">🏞️ ${item.address}</div>
+        <div class="popup-info">📏 ${item.area}</div>
+        <a class="nav-btn" href="${appNavUrl}" target="_blank">打开百度地图导航</a>
+    </div>`;
+    marker.bindPopup(popup);
+});
+
+// ============== 核心：手机自动定位（打开就显示你的位置） ==============
+map.locate({
+    setView: true,        // 自动把地图中心移到你的位置
+    maxZoom: 16,          // 定位后放大级别
+    watch: false,
+    enableHighAccuracy: true // 高精度定位
+});
+
+// 显示蓝色定位图标
+map.on('locationfound', function(e) {
+    L.circleMarker(e.latlng, {
+        radius: 8,
+        fillColor: '#2196F3',
+        color: '#fff',
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 0.8
+    }).addTo(map).bindPopup("你的位置").openPopup();
+});
+// ====================================================================
+</script>
+</body>
+</html>
